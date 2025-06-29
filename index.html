@@ -4,481 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PyCompiler - Online Python Compiler</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pyodide/0.25.0/pyodide.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        /* Navigation Bar */
-        .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 1rem 2rem;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            animation: slideDown 0.8s ease-out;
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .brand {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .brand:hover {
-            transform: scale(1.05);
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-
-        .nav-item {
-            cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-item:hover {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .nav-item.active {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-            gap: 4px;
-        }
-
-        .hamburger span {
-            width: 25px;
-            height: 3px;
-            background: #333;
-            transition: all 0.3s ease;
-            border-radius: 2px;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-top: 80px;
-            min-height: calc(100vh - 80px);
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Home Tab */
-        .hero {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: white;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-
-        .cta-button {
-            background: linear-gradient(45deg, #ff6b6b, #ffa500);
-            color: white;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.6);
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            padding: 4rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            padding: 2rem;
-            border-radius: 20px;
-            text-align: center;
-            color: white;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Editor Tab */
-        .editor-container {
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            padding: 1rem 2rem;
-            border-radius: 15px;
-            color: white;
-        }
-
-        .editor-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            height: 70vh;
-        }
-
-        .code-panel, .output-panel {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(20px);
-        }
-
-        .panel-header {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            padding: 1rem;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .code-editor {
-            width: 100%;
-            height: calc(100% - 60px);
-            border: none;
-            outline: none;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            padding: 1rem;
-            background: #2d3748;
-            color: #e2e8f0;
-            resize: none;
-            line-height: 1.6;
-        }
-
-        .output-content {
-            height: calc(100% - 60px);
-            padding: 1rem;
-            overflow-y: auto;
-            background: #1a202c;
-            color: #e2e8f0;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 14px;
-            white-space: pre-wrap;
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            margin-left: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: linear-gradient(45deg, #ff6b6b, #ffa500);
-            color: white;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .loading {
-            display: none;
-            color: #ffa500;
-        }
-
-        /* Content Sections */
-        .content-section {
-            background: rgba(255, 255, 255, 0.95);
-            margin: 2rem;
-            padding: 3rem;
-            border-radius: 20px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .faq-item {
-            margin-bottom: 1.5rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .faq-item:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .faq-question {
-            padding: 1rem;
-            background: #f8f9fa;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s ease;
-        }
-
-        .faq-question:hover {
-            background: #e9ecef;
-        }
-
-        .faq-answer {
-            padding: 1rem;
-            display: none;
-            background: white;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .faq-answer.active {
-            display: block;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        .contact-form {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #4a5568;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-menu {
-                position: fixed;
-                top: 80px;
-                left: -100%;
-                width: 100%;
-                height: calc(100vh - 80px);
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(20px);
-                flex-direction: column;
-                justify-content: flex-start;
-                align-items: center;
-                padding-top: 2rem;
-                transition: left 0.3s ease;
-            }
-
-            .nav-menu.active {
-                left: 0;
-            }
-
-            .hamburger {
-                display: flex;
-            }
-
-            .hamburger.active span:nth-child(1) {
-                transform: rotate(45deg) translate(5px, 5px);
-            }
-
-            .hamburger.active span:nth-child(2) {
-                opacity: 0;
-            }
-
-            .hamburger.active span:nth-child(3) {
-                transform: rotate(-45deg) translate(7px, -6px);
-            }
-
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .editor-layout {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-
-            .code-panel, .output-panel {
-                height: 50vh;
-            }
-
-            .content-section {
-                margin: 1rem;
-                padding: 2rem;
-            }
-
-            .editor-header {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-        }
-
-        /* Syntax Highlighting Styles */
-        .code-editor {
-            tab-size: 4;
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #2d3748;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #4a5568;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-        }
-    </style>
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="brand" onclick="showTab('home')">PyCompiler</div>
-            <ul class="nav-menu" id="nav-menu">
-                <li class="nav-item active" onclick="showTab('home')" data-tab="home">Home</li>
-                <li class="nav-item" onclick="showTab('editor')" data-tab="editor">Editor</li>
-                <li class="nav-item" onclick="showTab('faqs')" data-tab="faqs">FAQs</li>
-                <li class="nav-item" onclick="showTab('contact')" data-tab="contact">Contact</li>
-                <li class="nav-item" onclick="showTab('about')" data-tab="about">About Us</li>
-            </ul>
-            <div class="hamburger" onclick="toggleMenu()">
+            <div class="nav-brand" onclick="showTab('home')">
+                <i class="fab fa-python"></i>
+                <span>PyCompiler</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <div class="nav-item" onclick="showTab('home')">Home</div>
+                <div class="nav-item" onclick="showTab('editor')">Editor</div>
+                <div class="nav-item" onclick="showTab('faqs')">FAQs</div>
+                <div class="nav-item" onclick="showTab('contact')">Contact</div>
+                <div class="nav-item" onclick="showTab('about')">About Us</div>
+            </div>
+            <div class="hamburger" id="hamburger">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -486,563 +34,418 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Home Tab -->
-        <div id="home" class="tab-content active">
-            <section class="hero">
-                <h1>Welcome to PyCompiler</h1>
-                <p>The most powerful online Python compiler with real-time execution</p>
-                <button class="cta-button" onclick="showTab('editor')">Start Coding Now</button>
-            </section>
-            
-            <div class="features">
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Lightning Fast</h3>
-                    <p>Execute Python code instantly with our optimized Pyodide engine. No setup required!</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💡</div>
-                    <h3>Smart Editor</h3>
-                    <p>Syntax highlighting, auto-completion, and smart indentation make coding a breeze.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>Mobile Friendly</h3>
-                    <p>Code anywhere, anytime. Our responsive design works perfectly on all devices.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔧</div>
-                    <h3>Full Python Support</h3>
-                    <p>Support for Python 3.x with popular libraries including NumPy, Pandas, and more.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Editor Tab -->
-        <div id="editor" class="tab-content">
-            <div class="editor-container">
-                <div class="editor-header">
-                    <h2>Python Code Editor</h2>
-                    <div>
-                        <button class="btn btn-primary" onclick="runCode()">
-                            <span class="loading" id="loading">⏳</span>
-                            <span id="run-text">▶ Run Code</span>
+    <!-- Home Tab -->
+    <div id="home" class="tab-content active">
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">
+                        <span class="gradient-text">PyCompiler</span>
+                        <br>Online Python IDE
+                    </h1>
+                    <p class="hero-subtitle">
+                        Write, compile, and run Python code instantly in your browser. 
+                        No installation required - just code and execute!
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary" onclick="showTab('editor')">
+                            <i class="fas fa-code"></i>
+                            Start Coding
                         </button>
-                        <button class="btn btn-secondary" onclick="copyCode()">📋 Copy Code</button>
-                        <button class="btn btn-secondary" onclick="clearEditor()">🗑️ Clear</button>
+                        <button class="btn-secondary" onclick="showTab('about')">
+                            <i class="fas fa-info-circle"></i>
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="code-preview">
+                        <div class="code-header">
+                            <div class="code-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <span class="code-title">main.py</span>
+                        </div>
+                        <div class="code-content">
+                            <pre><code><span class="keyword">def</span> <span class="function">welcome</span>():
+    <span class="string">"Welcome to PyCompiler!"</span>
+    <span class="keyword">print</span>(<span class="string">"Hello, World!"</span>)
+    
+<span class="function">welcome</span>()</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features-section">
+            <div class="container">
+                <h2 class="section-title">Why Choose PyCompiler?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Lightning Fast</h3>
+                        <p>Execute Python code instantly with our optimized runtime environment</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3>Mobile Friendly</h3>
+                        <p>Code anywhere, anytime with our responsive design that works on all devices</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h3>Syntax Highlighting</h3>
+                        <p>Beautiful code editor with syntax highlighting and auto-completion</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Secure & Safe</h3>
+                        <p>Run code in a sandboxed environment with complete security</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editor Tab -->
+    <div id="editor" class="tab-content">
+        <div class="editor-container">
+            <div class="editor-header">
+                <div class="editor-title">
+                    <i class="fas fa-code"></i>
+                    <span>Python Editor</span>
+                </div>
+                <div class="editor-controls">
+                    <button class="btn-control" id="copyBtn" title="Copy Code">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="btn-control" id="clearBtn" title="Clear Code">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="btn-run" id="runBtn">
+                        <i class="fas fa-play"></i>
+                        Run Code
+                    </button>
+                </div>
+            </div>
+            
+            <div class="editor-layout">
+                <div class="code-section">
+                    <div class="section-header">
+                        <i class="fas fa-file-code"></i>
+                        <span>Code Editor</span>
+                    </div>
+                    <div class="code-editor-wrapper">
+                        <textarea id="codeEditor" placeholder="# Write your Python code here
+print('Hello, PyCompiler!')
+
+# Example: Calculate factorial
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n-1)
+
+number = 5
+result = factorial(number)
+print(f'Factorial of {number} is {result}')"></textarea>
                     </div>
                 </div>
                 
-                <div class="editor-layout">
-                    <div class="code-panel">
-                        <div class="panel-header">
-                            <span>📝 Code Editor</span>
-                            <span>Python 3.x</span>
-                        </div>
-                        <textarea id="code-editor" class="code-editor" placeholder="# Welcome to PyCompiler!
-# Write your Python code here and click 'Run Code' to execute
-
-print('Hello, World!')
-print('Welcome to PyCompiler!')
-
-# Example: Simple calculation
-x = 10
-y = 20
-result = x + y
-print(f'The sum of {x} and {y} is {result}')
-
-# Example: List operations
-numbers = [1, 2, 3, 4, 5]
-squared = [n**2 for n in numbers]
-print(f'Original numbers: {numbers}')
-print(f'Squared numbers: {squared}')"></textarea>
+                <div class="output-section">
+                    <div class="section-header">
+                        <i class="fas fa-terminal"></i>
+                        <span>Output</span>
+                        <div class="output-status" id="outputStatus">Ready</div>
                     </div>
+                    <div class="output-wrapper">
+                        <pre id="output" class="output-display">Click "Run Code" to see output here...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQs Tab -->
+    <div id="faqs" class="tab-content">
+        <div class="container">
+            <div class="section-header-center">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                <p class="section-subtitle">Find answers to common questions about PyCompiler</p>
+            </div>
+            
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What is PyCompiler?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>PyCompiler is an online Python IDE that allows you to write, compile, and execute Python code directly in your web browser without any installation required.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Do I need to install Python on my computer?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No! PyCompiler runs Python code in your browser using Pyodide, so you don't need to install anything on your computer.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Is PyCompiler free to use?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! PyCompiler is completely free to use. You can write and execute Python code without any limitations.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What Python libraries are supported?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>PyCompiler supports most standard Python libraries and many popular packages like NumPy, Pandas, Matplotlib, and more through Pyodide.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Can I save my code?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Currently, you can copy your code using the copy button. We're working on adding save and load functionality in future updates.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Tab -->
+    <div id="contact" class="tab-content">
+        <div class="container">
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <h2 class="section-title">Get In Touch</h2>
+                    <p class="section-subtitle">Have questions or suggestions? We'd love to hear from you!</p>
                     
-                    <div class="output-panel">
-                        <div class="panel-header">
-                            <span>📤 Output</span>
-                            <button class="btn" onclick="clearOutput()" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Clear</button>
+                    <div class="contact-methods">
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Email Us</h4>
+                                <p>support@pycompiler.com</p>
+                            </div>
                         </div>
-                        <div id="output" class="output-content">Click 'Run Code' to see the output here...</div>
+                        
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fab fa-github"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>GitHub</h4>
+                                <p>github.com/pycompiler</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <i class="fab fa-twitter"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h4>Twitter</h4>
+                                <p>@pycompiler</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- FAQs Tab -->
-        <div id="faqs" class="tab-content">
-            <div class="content-section">
-                <h2 style="text-align: center; margin-bottom: 2rem; color: #4a5568;">Frequently Asked Questions</h2>
-                
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        What is PyCompiler? ▼
-                    </div>
-                    <div class="faq-answer">
-                        PyCompiler is a free online Python compiler that allows you to write, compile, and execute Python code directly in your web browser. No installation required!
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        Which Python version is supported? ▼
-                    </div>
-                    <div class="faq-answer">
-                        PyCompiler supports Python 3.x (specifically Python 3.10+) with most standard libraries and popular packages like NumPy, Pandas, and Matplotlib.
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        Is PyCompiler free to use? ▼
-                    </div>
-                    <div class="faq-answer">
-                        Yes! PyCompiler is completely free to use. There are no hidden charges, subscriptions, or limits on usage.
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        Can I save my code? ▼
-                    </div>
-                    <div class="faq-answer">
-                        Currently, your code is stored locally in your browser session. We recommend copying important code to your local files or cloud storage for permanent backup.
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
-                        What libraries are available? ▼
-                    </div>
-                    <div class="faq-answer">
-                        PyCompiler includes many popular Python libraries such as NumPy, Pandas, Matplotlib, SciPy, and most standard library modules. Some libraries may have limitations due to browser environment.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Contact Tab -->
-        <div id="contact" class="tab-content">
-            <div class="content-section">
-                <h2 style="text-align: center; margin-bottom: 2rem; color: #4a5568;">Get In Touch</h2>
                 
                 <div class="contact-form">
-                    <form onsubmit="submitForm(event)">
+                    <form id="contactForm">
                         <div class="form-group">
-                            <label for="name">Full Name</label>
-                            <input type="text" id="name" class="form-control" required>
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required>
                         </div>
                         
                         <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" class="form-control" required>
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="subject">Subject</label>
-                            <input type="text" id="subject" class="form-control" required>
+                            <input type="text" id="subject" name="subject" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="message">Message</label>
-                            <textarea id="message" class="form-control" required></textarea>
+                            <textarea id="message" name="message" rows="5" required></textarea>
                         </div>
                         
-                        <div style="text-align: center;">
-                            <button type="submit" class="cta-button">Send Message</button>
-                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Message
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- About Us Tab -->
-        <div id="about" class="tab-content">
-            <div class="content-section">
-                <h2 style="text-align: center; margin-bottom: 2rem; color: #4a5568;">About PyCompiler</h2>
+    <!-- About Us Tab -->
+    <div id="about" class="tab-content">
+        <div class="container">
+            <div class="about-wrapper">
+                <div class="about-hero">
+                    <h2 class="section-title">About PyCompiler</h2>
+                    <p class="section-subtitle">Empowering developers to code Python anywhere, anytime</p>
+                </div>
                 
-                <div style="max-width: 800px; margin: 0 auto; line-height: 1.8;">
-                    <h3 style="color: #667eea; margin-bottom: 1rem;">Our Mission</h3>
-                    <p style="margin-bottom: 2rem;">
-                        PyCompiler was created to democratize Python programming by providing a powerful, accessible, and user-friendly online coding environment. We believe that everyone should have access to quality programming tools, regardless of their device or technical setup.
-                    </p>
-                    
-                    <h3 style="color: #667eea; margin-bottom: 1rem;">Why PyCompiler?</h3>
-                    <p style="margin-bottom: 2rem;">
-                        Traditional Python development requires complex setup processes, IDE installations, and environment management. PyCompiler eliminates these barriers by bringing the full power of Python directly to your web browser. Whether you're a student learning Python, a professional prototyping ideas, or an educator teaching programming concepts, PyCompiler provides the tools you need.
-                    </p>
-                    
-                    <h3 style="color: #667eea; margin-bottom: 1rem;">Technology</h3>
-                    <p style="margin-bottom: 2rem;">
-                        Built on Pyodide, a powerful Python distribution for the browser, PyCompiler leverages WebAssembly technology to provide near-native Python performance directly in your web browser. This means you get access to popular libraries like NumPy, Pandas, and Matplotlib without any installation.
-                    </p>
-                    
-                    <h3 style="color: #667eea; margin-bottom: 1rem;">Our Commitment</h3>
-                    <p>
-                        We're committed to keeping PyCompiler free, fast, and feature-rich. Our goal is to continuously improve the platform based on user feedback and emerging web technologies. Join thousands of developers who have already made PyCompiler their go-to online Python environment.
-                    </p>
+                <div class="about-content">
+                    <div class="about-section">
+                        <div class="about-text">
+                            <h3>Our Mission</h3>
+                            <p>PyCompiler was created with a simple mission: to make Python programming accessible to everyone, everywhere. We believe that learning and practicing code shouldn't be limited by software installations or system requirements.</p>
+                            
+                            <h3>What We Offer</h3>
+                            <p>Our online Python compiler provides a complete development environment in your browser. Whether you're a beginner learning Python or an experienced developer testing quick snippets, PyCompiler offers the tools you need.</p>
+                        </div>
+                        
+                        <div class="about-features">
+                            <div class="about-feature">
+                                <i class="fas fa-rocket"></i>
+                                <div>
+                                    <h4>Fast Execution</h4>
+                                    <p>Powered by Pyodide for instant code execution</p>
+                                </div>
+                            </div>
+                            
+                            <div class="about-feature">
+                                <i class="fas fa-users"></i>
+                                <div>
+                                    <h4>Community Driven</h4>
+                                    <p>Built for developers, by developers</p>
+                                </div>
+                            </div>
+                            
+                            <div class="about-feature">
+                                <i class="fas fa-globe"></i>
+                                <div>
+                                    <h4>Universal Access</h4>
+                                    <p>Available anywhere with an internet connection</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="team-section">
+                    <h3>Technologies We Use</h3>
+                    <div class="tech-grid">
+                        <div class="tech-item">
+                            <i class="fab fa-python"></i>
+                            <span>Python</span>
+                        </div>
+                        <div class="tech-item">
+                            <i class="fab fa-js-square"></i>
+                            <span>JavaScript</span>
+                        </div>
+                        <div class="tech-item">
+                            <i class="fab fa-html5"></i>
+                            <span>HTML5</span>
+                        </div>
+                        <div class="tech-item">
+                            <i class="fab fa-css3-alt"></i>
+                            <span>CSS3</span>
+                        </div>
+                        <div class="tech-item">
+                            <i class="fas fa-cogs"></i>
+                            <span>Pyodide</span>
+                        </div>
+                        <div class="tech-item">
+                            <i class="fas fa-code"></i>
+                            <span>CodeMirror</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <script>
-        let pyodide;
-        let pyodideReady = false;
-
-        // Initialize Pyodide
-        async function initPyodide() {
-            try {
-                if (!pyodideReady) {
-                    pyodide = await loadPyodide();
-                    pyodideReady = true;
-                    console.log('Pyodide is ready!');
-                }
-            } catch (error) {
-                console.error('Failed to load Pyodide:', error);
-            }
-        }
-
-        // Initialize Pyodide when page loads
-        window.addEventListener('load', initPyodide);
-
-        // Tab Management
-        function showTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            
-            // Update nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            
-            // Close mobile menu
-            document.getElementById('nav-menu').classList.remove('active');
-            document.querySelector('.hamburger').classList.remove('active');
-        }
-
-        // Mobile Menu Toggle
-        function toggleMenu() {
-            const navMenu = document.getElementById('nav-menu');
-            const hamburger = document.querySelector('.hamburger');
-            navMenu.classList.toggle('active');
-            hamburger.classList.toggle('active');
-        }
-
-        // Code Editor Functions
-        async function runCode() {
-            const code = document.getElementById('code-editor').value;
-            const output = document.getElementById('output');
-            const loading = document.getElementById('loading');
-            const runText = document.getElementById('run-text');
-            
-            if (!code.trim()) {
-                output.textContent = 'Please enter some Python code to execute.';
-                return;
-            }
-
-            // Show loading state
-            loading.style.display = 'inline';
-            runText.textContent = 'Running...';
-            output.textContent = 'Executing code...';
-
-            try {
-                if (!pyodideReady) {
-                    output.textContent = 'Initializing Python environment... Please wait.';
-                    await initPyodide();
-                }
-
-                // Capture stdout
-                pyodide.runPython(`
-import sys
-import io
-sys.stdout = io.StringIO()
-                `);
-
-                // Run user code
-                try {
-                    pyodide.runPython(code);
-                    const stdout = pyodide.runPython("sys.stdout.getvalue()");
-                    output.textContent = stdout || 'Code executed successfully (no output)';
-                } catch (pythonError) {
-                    output.textContent = `Error: ${pythonError.message}`;
-                }
-
-                // Reset stdout
-                pyodide.runPython(`
-sys.stdout = sys.__stdout__
-                `);
-
-            } catch (error) {
-                output.textContent = `System Error: ${error.message}`;
-            } finally {
-                // Hide loading state
-                loading.style.display = 'none';
-                runText.textContent = '▶ Run Code';
-            }
-        }
-
-        function copyCode() {
-            const codeEditor = document.getElementById('code-editor');
-            codeEditor.select();
-            document.execCommand('copy');
-            
-            // Show feedback
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '✅ Copied!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 2000);
-        }
-
-        function clearEditor() {
-            if (confirm('Are you sure you want to clear the editor?')) {
-                document.getElementById('code-editor').value = '';
-            }
-        }
-
-        function clearOutput() {
-            document.getElementById('output').textContent = 'Output cleared. Run some code to see results here...';
-        }
-
-        // Auto-closing brackets and parentheses
-        document.getElementById('code-editor').addEventListener('keydown', function(e) {
-            const editor = e.target;
-            const cursor = editor.selectionStart;
-            const value = editor.value;
-            
-            const pairs = {
-                '(': ')',
-                '[': ']',
-                '{': '}',
-                '"': '"',
-                "'": "'"
-            };
-            
-            if (pairs[e.key]) {
-                e.preventDefault();
-                const before = value.substring(0, cursor);
-                const after = value.substring(cursor);
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="brand-logo">
+                        <i class="fab fa-python"></i>
+                        <span>PyCompiler</span>
+                    </div>
+                    <p>Online Python IDE for everyone</p>
+                </div>
                 
-                if (e.key === '"' || e.key === "'") {
-                    // Handle quotes specially
-                    if (after[0] === e.key) {
-                        // Skip closing quote
-                        editor.setSelectionRange(cursor + 1, cursor + 1);
-                        return;
-                    }
-                }
-                
-                editor.value = before + e.key + pairs[e.key] + after;
-                editor.setSelectionRange(cursor + 1, cursor + 1);
-            }
+                <div class="footer-links">
+                    <div class="footer-section">
+                        <h4>Product</h4>
+                        <a href="#" onclick="showTab('editor')">Editor</a>
+                        <a href="#" onclick="showTab('faqs')">FAQs</a>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Company</h4>
+                        <a href="#" onclick="showTab('about')">About Us</a>
+                        <a href="#" onclick="showTab('contact')">Contact</a>
+                    </div>
+                    
+                    <div class="footer-section">
+                        <h4>Follow Us</h4>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
-            // Handle Enter key for auto-indentation
-            if (e.key === 'Enter') {
-                const lines = value.substring(0, cursor).split('\n');
-                const currentLine = lines[lines.length - 1];
-                const indent = currentLine.match(/^\s*/)[0];
-                
-                if (currentLine.trim().endsWith(':')) {
-                    setTimeout(() => {
-                        const newCursor = editor.selectionStart;
-                        const newValue = editor.value;
-                        const beforeCursor = newValue.substring(0, newCursor);
-                        const afterCursor = newValue.substring(newCursor);
-                        
-                        editor.value = beforeCursor + indent + '    ' + afterCursor;
-                        editor.setSelectionRange(newCursor + indent.length + 4, newCursor + indent.length + 4);
-                    }, 0);
-                } else if (indent) {
-                    setTimeout(() => {
-                        const newCursor = editor.selectionStart;
-                        const newValue = editor.value;
-                        const beforeCursor = newValue.substring(0, newCursor);
-                        const afterCursor = newValue.substring(newCursor);
-                        
-                        editor.value = beforeCursor + indent + afterCursor;
-                        editor.setSelectionRange(newCursor + indent.length, newCursor + indent.length);
-                    }, 0);
-                }
-            }
-        });
+            <div class="footer-bottom">
+                <p>&copy; 2025 PyCompiler. Made with ❤️ for Python developers.</p>
+            </div>
+        </div>
+    </footer>
 
-        // FAQ Toggle Function
-        function toggleFAQ(element) {
-            const answer = element.nextElementSibling;
-            const isActive = answer.classList.contains('active');
-            
-            // Close all FAQs
-            document.querySelectorAll('.faq-answer').forEach(faq => {
-                faq.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.faq-question').forEach(q => {
-                q.textContent = q.textContent.replace('▲', '▼');
-            });
-            
-            // Toggle current FAQ
-            if (!isActive) {
-                answer.classList.add('active');
-                element.textContent = element.textContent.replace('▼', '▲');
-            }
-        }
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Initializing Python Environment...</p>
+        </div>
+    </div>
 
-        // Contact Form Submission
-        function submitForm(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const subject = document.getElementById('subject').value;
-            const message = document.getElementById('message').value;
-            
-            // Simulate form submission
-            alert(`Thank you, ${name}! Your message has been received. We'll get back to you at ${email} soon.`);
-            
-            // Reset form
-            event.target.reset();
-        }
-
-        // Enhanced Code Editor with Tab Support
-        document.getElementById('code-editor').addEventListener('keydown', function(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                
-                // Insert tab character
-                this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
-                this.selectionStart = this.selectionEnd = start + 4;
-            }
-        });
-
-        // Smooth scroll for better UX
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth scrolling to all internal links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Ctrl+Enter or Cmd+Enter to run code
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                if (document.getElementById('editor').classList.contains('active')) {
-                    e.preventDefault();
-                    runCode();
-                }
-            }
-            
-            // Ctrl+/ or Cmd+/ to toggle comments (basic implementation)
-            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-                const editor = document.getElementById('code-editor');
-                if (document.activeElement === editor) {
-                    e.preventDefault();
-                    toggleComment();
-                }
-            }
-        });
-
-        function toggleComment() {
-            const editor = document.getElementById('code-editor');
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            const text = editor.value;
-            
-            // Get the selected lines
-            const beforeSelection = text.substring(0, start);
-            const selection = text.substring(start, end);
-            const afterSelection = text.substring(end);
-            
-            // Find start of line
-            const lineStart = beforeSelection.lastIndexOf('\n') + 1;
-            const lineEnd = text.indexOf('\n', end);
-            const fullLineEnd = lineEnd === -1 ? text.length : lineEnd;
-            
-            const fullLine = text.substring(lineStart, fullLineEnd);
-            
-            if (fullLine.trim().startsWith('#')) {
-                // Remove comment
-                const uncommented = fullLine.replace(/^\s*#\s?/, match => match.replace('#', '').replace(/^ /, ''));
-                editor.value = text.substring(0, lineStart) + uncommented + text.substring(fullLineEnd);
-            } else {
-                // Add comment
-                const commented = fullLine.replace(/^(\s*)/, '$1# ');
-                editor.value = text.substring(0, lineStart) + commented + text.substring(fullLineEnd);
-            }
-        }
-
-        // Add loading animation for better UX
-        function showLoadingAnimation() {
-            const output = document.getElementById('output');
-            let dots = '';
-            const loadingInterval = setInterval(() => {
-                dots = dots.length < 3 ? dots + '.' : '';
-                output.textContent = `Executing code${dots}`;
-            }, 500);
-            
-            return loadingInterval;
-        }
-
-        // Enhanced error handling
-        window.addEventListener('error', function(e) {
-            console.error('Global error:', e.error);
-        });
-
-        // Add copy to clipboard functionality for output
-        function copyOutput() {
-            const output = document.getElementById('output');
-            if (output.textContent && output.textContent !== 'Click \'Run Code\' to see the output here...') {
-                navigator.clipboard.writeText(output.textContent).then(() => {
-                    // Show temporary feedback
-                    const originalText = output.textContent;
-                    output.textContent = 'Output copied to clipboard!';
-                    setTimeout(() => {
-                        output.textContent = originalText;
-                    }, 1500);
-                });
-            }
-        }
-
-        // Add double-click to copy output
-        document.getElementById('output').addEventListener('dblclick', copyOutput);
-
-        // Initialize tooltips and help text
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add helpful tooltips
-            const runButton = document.querySelector('.btn-primary');
-            runButton.title = 'Run Python code (Ctrl+Enter)';
-            
-            const copyButton = document.querySelector('.btn-secondary');
-            copyButton.title = 'Copy code to clipboard';
-            
-            const editor = document.getElementById('code-editor');
-            editor.title = 'Python Code Editor - Use Ctrl+Enter to run, Tab for indentation';
-            
-            const output = document.getElementById('output');
-            output.title = 'Double-click to copy output';
-        });
-    </script>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
