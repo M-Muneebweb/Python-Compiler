@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyCompiler - Online Python Compiler</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pyodide/0.25.0/pyodide.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .brand:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #333;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home Tab */
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.6);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Editor Tab */
+        .editor-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            color: white;
+        }
+
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            height: 70vh;
+        }
+
+        .code-panel, .output-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+        }
+
+        .panel-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-editor {
+            width: 100%;
+            height: calc(100% - 60px);
+            border: none;
+            outline: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            padding: 1rem;
+            background: #2d3748;
+            color: #e2e8f0;
+            resize: none;
+            line-height: 1.6;
+        }
+
+        .output-content {
+            height: calc(100% - 60px);
+            padding: 1rem;
+            overflow-y: auto;
+            background: #1a202c;
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-left: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading {
+            display: none;
+            color: #ffa500;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 2rem;
+            padding: 3rem;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .faq-item {
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-question {
+            padding: 1rem;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background: #e9ecef;
+        }
+
+        .faq-answer {
+            padding: 1rem;
+            display: none;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .faq-answer.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                top: 80px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 80px);
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                padding-top: 2rem;
+                transition: left 0.3s ease;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hamburger.active span:nth-child(1) {
+                transform: rotate(45deg) translate(5px, 5px);
+            }
+
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(7px, -6px);
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .editor-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .code-panel, .output-panel {
+                height: 50vh;
+            }
+
+            .content-section {
+                margin: 1rem;
+                padding: 2rem;
+            }
+
+            .editor-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+
+        /* Syntax Highlighting Styles */
+        .code-editor {
+            tab-size: 4;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="brand" onclick="showTab('home')">PyCompiler</div>
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item active" onclick="showTab('home')" data-tab="home">Home</li>
+                <li class="nav-item" onclick="showTab('editor')" data-tab="editor">Editor</li>
+                <li class="nav-item" onclick="showTab('faqs')" data-tab="faqs">FAQs</li>
+                <li class="nav-item" onclick="showTab('contact')" data-tab="contact">Contact</li>
+                <li class="nav-item" onclick="showTab('about')" data-tab="about">About Us</li>
+            </ul>
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <section class="hero">
+                <h1>Welcome to PyCompiler</h1>
+                <p>The most powerful online Python compiler with real-time execution</p>
+                <button class="cta-button" onclick="showTab('editor')">Start Coding Now</button>
+            </section>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Execute Python code instantly with our optimized Pyodide engine. No setup required!</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💡</div>
+                    <h3>Smart Editor</h3>
+                    <p>Syntax highlighting, auto-completion, and smart indentation make coding a breeze.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Mobile Friendly</h3>
+                    <p>Code anywhere, anytime. Our responsive design works perfectly on all devices.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Full Python Support</h3>
+                    <p>Support for Python 3.x with popular libraries including NumPy, Pandas, and more.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Tab -->
+        <div id="editor" class="tab-content">
+            <div class="editor-container">
+                <div class="editor-header">
+                    <h2>Python Code Editor</h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="runCode()">
+                            <span class="loading" id="loading">⏳</span>
+                            <span id="run-text">▶ Run Code</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyCode()">📋 Copy Code</button>
+                        <button class="btn btn-secondary" onclick="clearEditor()">🗑️ Clear</button>
+                    </div>
+                </div>
+                
+                <div class="editor-layout">
+                    <div class="code-panel">
+                        <div class="panel-header">
+                            <span>📝 Code Editor</span>
+                            <span>Python 3.x</span>
+                        </div>
+                        <textarea id="code-editor" class="code-editor" placeholder="# Welcome to PyCompiler!
+# Write your Python code here and click 'Run Code' to execute
+
+print('Hello, World!')
+print('Welcome to PyCompiler!')
+
+# Example: Simple calculation
+x = 10
+y = 20
+result = x + y
+print(f'The sum of {x} and {y} is {result}')
+
+# Example: List operations
+numbers = [1, 2, 3, 4, 5]
+squared = [n**2 for n in numbers]
+print(f'Original numbers: {numbers}')
+print(f'Squared numbers: {squared}')"></textarea>
+                    </div>
+                    
+                    <div class="output-panel">
+                        <div class="panel-header">
+                            <span>📤 Output</span>
+                            <button class="btn" onclick="clearOutput()" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Clear</button>
+                        </div>
+                        <div id="output" class="output-content">Click 'Run Code' to see the output here...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQs Tab -->
+        <div id="faqs" class="tab-content">
+            <div class="content-section">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #4a5568;">Frequently Asked Questions</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        What is PyCompiler? ▼
+                    </div>
+                    <div class="faq-answer">
+                        PyCompiler is a free online Python compiler that allows you to write, compile, and execute Python code directly in your web browser. No installation required!
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Which Python version is supported? ▼
+                    </div>
+                    <div class="faq-answer">
+                        PyCompiler supports Python 3.x (specifically Python 3.10+) with most standard libraries and popular packages like NumPy, Pandas, and Matplotlib.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Is PyCompiler free to use? ▼
+                    </div>
+                    <div class="faq-answer">
+                        Yes! PyCompiler is completely free to use. There are no hidden charges, subscriptions, or limits on usage.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        Can I save my code? ▼
+                    </div>
+                    <div class="faq-answer">
+                        Currently, your code is stored locally in your browser session. We recommend copying important code to your local files or cloud storage for permanent backup.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        What libraries are available? ▼
+                    </div>
+                    <div class="faq-answer">
+                        PyCompiler includes many popular Python libraries such as NumPy, Pandas, Matplotlib, SciPy, and most standard library modules. Some libraries may have limitations due to browser environment.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Tab -->
+        <div id="contact" class="tab-content">
+            <div class="content-section">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #4a5568;">Get In Touch</h2>
+                
+                <div class="contact-form">
+                    <form onsubmit="submitForm(event)">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <input type="text" id="subject" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" class="form-control" required></textarea>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <button type="submit" class="cta-button">Send Message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Us Tab -->
+        <div id="about" class="tab-content">
+            <div class="content-section">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #4a5568;">About PyCompiler</h2>
+                
+                <div style="max-width: 800px; margin: 0 auto; line-height: 1.8;">
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">Our Mission</h3>
+                    <p style="margin-bottom: 2rem;">
+                        PyCompiler was created to democratize Python programming by providing a powerful, accessible, and user-friendly online coding environment. We believe that everyone should have access to quality programming tools, regardless of their device or technical setup.
+                    </p>
+                    
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">Why PyCompiler?</h3>
+                    <p style="margin-bottom: 2rem;">
+                        Traditional Python development requires complex setup processes, IDE installations, and environment management. PyCompiler eliminates these barriers by bringing the full power of Python directly to your web browser. Whether you're a student learning Python, a professional prototyping ideas, or an educator teaching programming concepts, PyCompiler provides the tools you need.
+                    </p>
+                    
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">Technology</h3>
+                    <p style="margin-bottom: 2rem;">
+                        Built on Pyodide, a powerful Python distribution for the browser, PyCompiler leverages WebAssembly technology to provide near-native Python performance directly in your web browser. This means you get access to popular libraries like NumPy, Pandas, and Matplotlib without any installation.
+                    </p>
+                    
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">Our Commitment</h3>
+                    <p>
+                        We're committed to keeping PyCompiler free, fast, and feature-rich. Our goal is to continuously improve the platform based on user feedback and emerging web technologies. Join thousands of developers who have already made PyCompiler their go-to online Python environment.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let pyodide;
+        let pyodideReady = false;
+
+        // Initialize Pyodide
+        async function initPyodide() {
+            try {
+                if (!pyodideReady) {
+                    pyodide = await loadPyodide();
+                    pyodideReady = true;
+                    console.log('Pyodide is ready!');
+                }
+            } catch (error) {
+                console.error('Failed to load Pyodide:', error);
+            }
+        }
+
+        // Initialize Pyodide when page loads
+        window.addEventListener('load', initPyodide);
+
+        // Tab Management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Close mobile menu
+            document.getElementById('nav-menu').classList.remove('active');
+            document.querySelector('.hamburger').classList.remove('active');
+        }
+
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const navMenu = document.getElementById('nav-menu');
+            const hamburger = document.querySelector('.hamburger');
+            navMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        }
+
+        // Code Editor Functions
+        async function runCode() {
+            const code = document.getElementById('code-editor').value;
+            const output = document.getElementById('output');
+            const loading = document.getElementById('loading');
+            const runText = document.getElementById('run-text');
+            
+            if (!code.trim()) {
+                output.textContent = 'Please enter some Python code to execute.';
+                return;
+            }
+
+            // Show loading state
+            loading.style.display = 'inline';
+            runText.textContent = 'Running...';
+            output.textContent = 'Executing code...';
+
+            try {
+                if (!pyodideReady) {
+                    output.textContent = 'Initializing Python environment... Please wait.';
+                    await initPyodide();
+                }
+
+                // Capture stdout
+                pyodide.runPython(`
+import sys
+import io
+sys.stdout = io.StringIO()
+                `);
+
+                // Run user code
+                try {
+                    pyodide.runPython(code);
+                    const stdout = pyodide.runPython("sys.stdout.getvalue()");
+                    output.textContent = stdout || 'Code executed successfully (no output)';
+                } catch (pythonError) {
+                    output.textContent = `Error: ${pythonError.message}`;
+                }
+
+                // Reset stdout
+                pyodide.runPython(`
+sys.stdout = sys.__stdout__
+                `);
+
+            } catch (error) {
+                output.textContent = `System Error: ${error.message}`;
+            } finally {
+                // Hide loading state
+                loading.style.display = 'none';
+                runText.textContent = '▶ Run Code';
+            }
+        }
+
+        function copyCode() {
+            const codeEditor = document.getElementById('code-editor');
+            codeEditor.select();
+            document.execCommand('copy');
+            
+            // Show feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+
+        function clearEditor() {
+            if (confirm('Are you sure you want to clear the editor?')) {
+                document.getElementById('code-editor').value = '';
+            }
+        }
+
+        function clearOutput() {
+            document.getElementById('output').textContent = 'Output cleared. Run some code to see results here...';
+        }
+
+        // Auto-closing brackets and parentheses
+        document.getElementById('code-editor').addEventListener('keydown', function(e) {
+            const editor = e.target;
+            const cursor = editor.selectionStart;
+            const value = editor.value;
+            
+            const pairs = {
+                '(': ')',
+                '[': ']',
+                '{': '}',
+                '"': '"',
+                "'": "'"
+            };
+            
+            if (pairs[e.key]) {
+                e.preventDefault();
+                const before = value.substring(0, cursor);
+                const after = value.substring(cursor);
+                
+                if (e.key === '"' || e.key === "'") {
+                    // Handle quotes specially
+                    if (after[0] === e.key) {
+                        // Skip closing quote
+                        editor.setSelectionRange(cursor + 1, cursor + 1);
+                        return;
+                    }
+                }
+                
+                editor.value = before + e.key + pairs[e.key] + after;
+                editor.setSelectionRange(cursor + 1, cursor + 1);
+            }
+            
+            // Handle Enter key for auto-indentation
+            if (e.key === 'Enter') {
+                const lines = value.substring(0, cursor).split('\n');
+                const currentLine = lines[lines.length - 1];
+                const indent = currentLine.match(/^\s*/)[0];
+                
+                if (currentLine.trim().endsWith(':')) {
+                    setTimeout(() => {
+                        const newCursor = editor.selectionStart;
+                        const newValue = editor.value;
+                        const beforeCursor = newValue.substring(0, newCursor);
+                        const afterCursor = newValue.substring(newCursor);
+                        
+                        editor.value = beforeCursor + indent + '    ' + afterCursor;
+                        editor.setSelectionRange(newCursor + indent.length + 4, newCursor + indent.length + 4);
+                    }, 0);
+                } else if (indent) {
+                    setTimeout(() => {
+                        const newCursor = editor.selectionStart;
+                        const newValue = editor.value;
+                        const beforeCursor = newValue.substring(0, newCursor);
+                        const afterCursor = newValue.substring(newCursor);
+                        
+                        editor.value = beforeCursor + indent + afterCursor;
+                        editor.setSelectionRange(newCursor + indent.length, newCursor + indent.length);
+                    }, 0);
+                }
+            }
+        });
+
+        // FAQ Toggle Function
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const isActive = answer.classList.contains('active');
+            
+            // Close all FAQs
+            document.querySelectorAll('.faq-answer').forEach(faq => {
+                faq.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.faq-question').forEach(q => {
+                q.textContent = q.textContent.replace('▲', '▼');
+            });
+            
+            // Toggle current FAQ
+            if (!isActive) {
+                answer.classList.add('active');
+                element.textContent = element.textContent.replace('▼', '▲');
+            }
+        }
+
+        // Contact Form Submission
+        function submitForm(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            
+            // Simulate form submission
+            alert(`Thank you, ${name}! Your message has been received. We'll get back to you at ${email} soon.`);
+            
+            // Reset form
+            event.target.reset();
+        }
+
+        // Enhanced Code Editor with Tab Support
+        document.getElementById('code-editor').addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                
+                // Insert tab character
+                this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+            }
+        });
+
+        // Smooth scroll for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth scrolling to all internal links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Enter or Cmd+Enter to run code
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                if (document.getElementById('editor').classList.contains('active')) {
+                    e.preventDefault();
+                    runCode();
+                }
+            }
+            
+            // Ctrl+/ or Cmd+/ to toggle comments (basic implementation)
+            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                const editor = document.getElementById('code-editor');
+                if (document.activeElement === editor) {
+                    e.preventDefault();
+                    toggleComment();
+                }
+            }
+        });
+
+        function toggleComment() {
+            const editor = document.getElementById('code-editor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            
+            // Get the selected lines
+            const beforeSelection = text.substring(0, start);
+            const selection = text.substring(start, end);
+            const afterSelection = text.substring(end);
+            
+            // Find start of line
+            const lineStart = beforeSelection.lastIndexOf('\n') + 1;
+            const lineEnd = text.indexOf('\n', end);
+            const fullLineEnd = lineEnd === -1 ? text.length : lineEnd;
+            
+            const fullLine = text.substring(lineStart, fullLineEnd);
+            
+            if (fullLine.trim().startsWith('#')) {
+                // Remove comment
+                const uncommented = fullLine.replace(/^\s*#\s?/, match => match.replace('#', '').replace(/^ /, ''));
+                editor.value = text.substring(0, lineStart) + uncommented + text.substring(fullLineEnd);
+            } else {
+                // Add comment
+                const commented = fullLine.replace(/^(\s*)/, '$1# ');
+                editor.value = text.substring(0, lineStart) + commented + text.substring(fullLineEnd);
+            }
+        }
+
+        // Add loading animation for better UX
+        function showLoadingAnimation() {
+            const output = document.getElementById('output');
+            let dots = '';
+            const loadingInterval = setInterval(() => {
+                dots = dots.length < 3 ? dots + '.' : '';
+                output.textContent = `Executing code${dots}`;
+            }, 500);
+            
+            return loadingInterval;
+        }
+
+        // Enhanced error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+
+        // Add copy to clipboard functionality for output
+        function copyOutput() {
+            const output = document.getElementById('output');
+            if (output.textContent && output.textContent !== 'Click \'Run Code\' to see the output here...') {
+                navigator.clipboard.writeText(output.textContent).then(() => {
+                    // Show temporary feedback
+                    const originalText = output.textContent;
+                    output.textContent = 'Output copied to clipboard!';
+                    setTimeout(() => {
+                        output.textContent = originalText;
+                    }, 1500);
+                });
+            }
+        }
+
+        // Add double-click to copy output
+        document.getElementById('output').addEventListener('dblclick', copyOutput);
+
+        // Initialize tooltips and help text
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add helpful tooltips
+            const runButton = document.querySelector('.btn-primary');
+            runButton.title = 'Run Python code (Ctrl+Enter)';
+            
+            const copyButton = document.querySelector('.btn-secondary');
+            copyButton.title = 'Copy code to clipboard';
+            
+            const editor = document.getElementById('code-editor');
+            editor.title = 'Python Code Editor - Use Ctrl+Enter to run, Tab for indentation';
+            
+            const output = document.getElementById('output');
+            output.title = 'Double-click to copy output';
+        });
+    </script>
+</body>
+</html>
